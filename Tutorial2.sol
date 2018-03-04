@@ -6,9 +6,15 @@ contract ERC20Contract {
         Key word glossary:
         
         constant - function cannot change the state variable(s)of a smart contract
+        
         view - alias for constant (ie view only)
+        
         pure - promises to neither modify nor read from the state of a contract
+        
         indexed - allow events to be logged, and searched via the parameters
+        
+        is - denotes an "is a" relationship AKA inheritance. java examlpe would be
+            extends
     */
     
     /* Functinons that need to be implemented */
@@ -50,4 +56,78 @@ contract ERC20Contract {
     
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
 
-}\
+}
+
+
+contract standardToken is ERC20Contract {
+    
+    mapping (address => uint256) balances;
+    mapping (address => mapping (address => uint256)) allowed;
+    uint public totalSupply;
+    
+    //implementations of functions go here
+    
+    function balanceOf(address tokenOwner) 
+        public constant returns (uint balance)
+        {
+            return balances[tokenOwner];
+        }
+    
+    function allowance(address tokenOwner, address spender)
+        public constant returns (uint remaining)
+        {
+            return allowed[tokenOwner][spender];
+        }
+    
+    function transfer(address to, uint tokens)
+        public returns (bool success)
+        {
+            //Don't allow burning for tokenOwner
+            require(to != 0x0);
+            
+            //Check for overflows
+            require(balances[to] + tokens >= balances[to]);
+            
+            //Check for enough balance and valid number of tokens
+            require(balances[msg.sender] >= tokens && tokens > 0);
+            
+            //Do the actual transfer
+            balances[msg.sender] -= tokens;
+            balances[to] += tokens;
+            
+            //Trigger the event for the transfer
+            Transfer(msg.sender,to,tokens);
+            return true;
+        }
+        
+    function transferFrom(address from, address to, uint tokens)
+        public returns(bool success)
+        {
+            //Don't allow burning for tokenOwner
+            require(to != 0x0);
+            
+            //Check for overflows
+            require(balances[to] + tokens >= balances[to]);
+            
+            //Check for enough balance and valid number of tokens
+            require(balances[msg.sender] >= tokens && tokens > 0);
+            
+            //Check for spending approval
+            require(allowed[from][msg.sender] >= tokens);
+                        
+            //Do the actual transfer
+            balances[from] -= tokens;
+            balances[to] += tokens; 
+            
+            //subtract tokens from the allowed amount;
+            //allowed amount is accessed with two address
+            //first address access a nested mapping of address
+            //to uint amounts
+            allowed[from][msg.sender] -= tokens;
+            
+            //Trigger the event for the transfer
+            Transfer(from, to, tokens);
+            return true;
+        }
+        
+}
