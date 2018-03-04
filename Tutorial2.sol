@@ -130,4 +130,14 @@ contract standardToken is ERC20Contract {
             return true;
         }
         
+    function approve(address spender, uint tokens)
+        public returns (bool success)
+        {
+            //allowed amount is set equal to tokens
+            allowed[msg.sender][spender] = tokens;
+            //Run Approval event
+            Approval(msg.sender, spender, tokens);
+            return true;
+        }
+        
 }
